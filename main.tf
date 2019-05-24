@@ -27,7 +27,7 @@ data "aws_availability_zones" "all" {}
 
 resource "aws_autoscaling_group" "example" {
   launch_configuration = "${aws_launch_configuration.example.id}"
-  availability_zones = ["${data.aws_availability_zones.all.names}"]
+  availability_zones = ["${data.aws_availability_zones.all.names[0]}","${data.aws_availability_zones.all.names[1]}"]
 
   min_size = 2
   max_size = 4
@@ -85,13 +85,6 @@ resource "aws_security_group" "instance" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  ingress {
-    from_port = "${var.ssh_port}"
-    to_port = "${var.ssh_port}"
-    protocol = "ssh"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
   # aws_launch_configuration.launch_configuration in this module sets create_before_destroy to true, which means
   # everything it depends on, including this resource, must set it as well, or you'll get cyclic dependency errors
   # when you try to do a terraform destroy.
@@ -107,7 +100,9 @@ resource "aws_security_group" "instance" {
 resource "aws_elb" "example" {
   name = "terraform-asg-example"
   security_groups = ["${aws_security_group.elb.id}"]
-  availability_zones = ["${data.aws_availability_zones.all.names}"]
+#  availability_zones = ["${data.aws_availability_zones.all.names}"]
+  availability_zones = ["${data.aws_availability_zones.all.names[0]}","${data.aws_availability_zones.all.names[1]}"]
+
 
   health_check {
     healthy_threshold = 2
